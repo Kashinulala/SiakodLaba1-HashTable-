@@ -25,20 +25,19 @@ class HashTable{
 		}
 
 		~HashTable() {
-			delete table;
-			delete status;
+			delete [] table;
+			delete [] status;
 		}
 		
 		int GetSize() const{
 			return N;
 		}
 
-		Employee GetEmp(int i) const{
-			return table[i];
-		}
-
-		int GetStat(int i) const {
-			return status[i];
+		friend ostream& operator << (ostream& os, const HashTable& ht) {
+			for (int i = 0; i < ht.N; i++) {
+				os << ht.table[i] << " | " << ht.status[i] << endl;
+			}
+			return os << endl;
 		}
 
 		//Хеш-функция 1, складывает кодировки символов фамилии,
@@ -58,57 +57,69 @@ class HashTable{
 
 
 		//Поиск записи в таблице
-		bool SearchRec(Employee rec) {
+		int SearchRec(Employee rec) {
 			int adr = HashFunc1(rec);
 			if ((rec == table[adr]) && (status[adr] == 1))
-				return true;
+				return adr;
 			else {
 				adr = HashFunc2(adr);
 				while (status[adr] != 0) {
 					if ((table[adr] == rec) && (status[adr] == 1)) {
-						return true;
+						return adr;
 						break;
 					}
 					else 
 						adr = HashFunc2(adr);
 				}
-				return false;
+				return -1;
 			}
 		}
 
 
 
-		/*int AddRecord(Employee rec) {
-			int index = HashFunc1(rec);
-			if (status[index] != 1) {
-				table[index] = rec;
-				status[index] = 1;
-				return 0;
-			}
-			else if ((status[index] == 1) && (rec == table[index])) {
-				return 1;
-			}
-				
-				else{
-					int index = HashFunc2(rec);
-					if (status[index] != 1) {
-						table[index] = rec;
-						status[index] = 1;
+		int AddRecord(Employee rec) {
+
+			if (SearchRec(rec) == -1) {
+
+				int adr = HashFunc1(rec);
+				if (status[adr] == 0) {
+					table[adr] = rec;
+					status[adr] = 1;
+					return 0;
+				}
+				else if ((status[adr] == 2) && (rec == table[adr])) {
+					status[adr] = 1;
+					return 0;
+				}
+				else {
+					adr = HashFunc2(adr);
+					if (status[adr] == 0) {
+						table[adr] = rec;
+						status[adr] = 1;
 						return 0;
 					}
-					else if ((status[index] == 1) && (rec == table[index])) {
-						return 1;
+					else if ((status[adr] == 2) && (rec == table[adr])) {
+						status[adr] = 1;
+						return 0;
 					}
 				}
-			
-			//дописать случай когда места нет (return 2 или расширение таблицы)
+
+				//дописать случай когда места нет (return 2 или расширение таблицы)
 
 
+			}
+			return 1;
 		}
-		*/
+
+
+		int DelRecord(Employee rec) {
+			int adr = SearchRec(rec);
+			if (adr != -1) {
+				status[adr] = 2;
+				return 1;
+			}
+			else return -1;
+		}
 			
-		
-
-
 
 };

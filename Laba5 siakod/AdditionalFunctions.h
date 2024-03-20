@@ -10,12 +10,12 @@ int GetStrSum(string str) {
 }
 
 
-ostream& operator<<(ostream& os, const Date& d) {
+ostream& operator << (ostream& os, const Date& d) {
     return os << d.dd << '.' << d.mm << '.' << d.yy;
 }
 
 
-ostream& operator<<(ostream& os, const Employee& e) {
+ostream& operator << (ostream& os, const Employee& e) {
     return os << e.surname << ' ' << e.initials << ' ' << e.dob << ' '
         << e.prof << ' ' << e.period;
 }
