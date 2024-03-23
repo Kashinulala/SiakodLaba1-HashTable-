@@ -57,21 +57,21 @@ class HashTable{
 
 
 		//ѕоиск записи в таблице
-		int SearchRec(Employee rec) {
+		bool SearchRec(Employee rec) {
 			int adr = HashFunc1(rec);
 			if ((rec == table[adr]) && (status[adr] == 1))
-				return adr;
+				return true;
 			else {
 				adr = HashFunc2(adr);
 				while (status[adr] != 0) {
 					if ((table[adr] == rec) && (status[adr] == 1)) {
-						return adr;
+						return true;
 						break;
 					}
 					else 
 						adr = HashFunc2(adr);
 				}
-				return -1;
+				return false;
 			}
 		}
 
@@ -79,46 +79,74 @@ class HashTable{
 
 		int AddRecord(Employee rec) {
 
-			if (SearchRec(rec) == -1) {
+			bool add_fl = false;
+			int add_adr;
 
-				int adr = HashFunc1(rec);
+			int adr = HashFunc1(rec);
+			if (status[adr] == 0) {
+				table[adr] = rec;
+				status[adr] = 1;
+				return 0;
+			}
+			if ((status[adr] == 1) && (rec == table[adr])) {
+				return 1;
+			}
+			if (status[adr] == 2) {
+				add_fl = true;
+				add_adr = adr;
+			}
+
+			for (int i = 0; i < N; i++) {
+				adr = HashFunc2(adr);
+				if ((status[adr] == 1) && (table[adr] == rec)) {
+					table[add_adr] = rec;
+					status[add_adr] = 1;
+					status[adr] = 2;
+					return 0;
+				}
 				if (status[adr] == 0) {
 					table[adr] = rec;
 					status[adr] = 1;
 					return 0;
 				}
-				else if ((status[adr] == 2) && (rec == table[adr])) {
+				if ((add_fl == false) && (status[adr] == 2)) {
+					add_fl = true;
+					add_adr = adr;
+				}
+			}
+				if (add_fl == true) {
+					table[adr] = rec;
 					status[adr] = 1;
 					return 0;
 				}
-				else {
-					adr = HashFunc2(adr);
-					if (status[adr] == 0) {
-						table[adr] = rec;
-						status[adr] = 1;
-						return 0;
-					}
-					else if ((status[adr] == 2) && (rec == table[adr])) {
-						status[adr] = 1;
-						return 0;
-					}
-				}
 
-				//дописать случай когда места нет (return 2 или расширение таблицы)
-
-
-			}
-			return 1;
+			//дописать случай когда места нет (return 2 или расширение таблицы)
 		}
 
 
 		int DelRecord(Employee rec) {
-			int adr = SearchRec(rec);
-			if (adr != -1) {
+			int adr = HashFunc1(rec);
+			if ((rec == table[adr]) && (status[adr] == 1)) {
 				status[adr] = 2;
 				return 1;
 			}
-			else return -1;
+			else {
+				adr = HashFunc2(adr);
+				int i = 0;
+				while (status[adr] != 0) {
+					if ((table[adr] == rec) && (status[adr] == 1)) {
+						status[adr] = 2;
+						return 1;
+					}
+					else 
+						adr = HashFunc2(adr);
+					if (i > N) {
+						return 0;
+					}
+					i++;
+				}
+				return 0;
+			}
 		}
 			
 
