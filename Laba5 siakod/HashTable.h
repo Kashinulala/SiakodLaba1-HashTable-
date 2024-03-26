@@ -8,6 +8,7 @@ class HashTable{
 		Employee* table;
 		int* status;
 		unsigned N;
+		unsigned cur_N;
 		unsigned min_N;
 		float k;
 
@@ -18,6 +19,7 @@ class HashTable{
 			N = _N;
 			k = _k;
 			min_N = _N;
+			cur_N = 0;
 			status = new int[_N];
 			for (int i = 0; i < _N; i++) {
 				status[i] = 0;
@@ -79,6 +81,7 @@ class HashTable{
 
 		int AddRecord(Employee rec) {
 
+			if(cur_N >= (N * k)) Resize();
 			bool add_fl = false;
 			int add_adr;
 
@@ -86,6 +89,7 @@ class HashTable{
 			if (status[adr] == 0) {
 				table[adr] = rec;
 				status[adr] = 1;
+				cur_N++;
 				return 0;
 			}
 			if ((status[adr] == 1) && (rec == table[adr])) {
@@ -102,11 +106,13 @@ class HashTable{
 					table[add_adr] = rec;
 					status[add_adr] = 1;
 					status[adr] = 2;
+					cur_N++;
 					return 0;
 				}
 				if (status[adr] == 0) {
 					table[adr] = rec;
 					status[adr] = 1;
+					cur_N++;
 					return 0;
 				}
 				if ((add_fl == false) && (status[adr] == 2)) {
@@ -114,20 +120,25 @@ class HashTable{
 					add_adr = adr;
 				}
 			}
-				if (add_fl == true) {
-					table[adr] = rec;
-					status[adr] = 1;
-					return 0;
-				}
+			if (add_fl == true) {
+				table[adr] = rec;
+				status[adr] = 1;
+				cur_N++;
+				return 0;
+			}
+			else return 2;
 
 			//дописать случай когда места нет (return 2 или расширение таблицы)
 		}
 
 
 		int DelRecord(Employee rec) {
+
+			if (cur_N <= (N * (1 - k))) Resize();
 			int adr = HashFunc1(rec);
 			if ((rec == table[adr]) && (status[adr] == 1)) {
 				status[adr] = 2;
+				cur_N--;
 				return 1;
 			}
 			else {
@@ -136,6 +147,7 @@ class HashTable{
 				while (status[adr] != 0) {
 					if ((table[adr] == rec) && (status[adr] == 1)) {
 						status[adr] = 2;
+						cur_N--;
 						return 1;
 					}
 					else 
@@ -147,6 +159,53 @@ class HashTable{
 				}
 				return 0;
 			}
+		}
+
+		int Resize() {
+
+			int N_2 = 0;
+
+			if (cur_N >= (N * k)) {
+				N_2 = N + 10;
+			}
+			else if (cur_N <= (N * (1 - k))) {
+				N_2 = N - 10;
+			}
+
+			if (N_2 >= min_N) {
+
+				Employee* emp_arr{new Employee[cur_N]};
+				int q = cur_N; //кол-во записей в текущей таблице
+				int j = 0;
+
+				for (int i = 0; i < N; i++) {
+					if (status[i] == 1) {
+						emp_arr[j] = table[i];
+						j++;
+					}
+				}
+
+				N = N_2;
+				delete[] table;
+				table = new Employee[N];
+				cur_N = 0;
+				delete[] status;
+				status = new int[N];
+				for (int i = 0; i < N; i++) {
+					status[i] = 0;
+				}
+
+				for (int i = 0; i < q; i++) {
+					AddRecord(emp_arr[i]);
+				}
+
+				delete[] emp_arr;
+
+				return 1;
+
+			}
+			else return 0;
+
 		}
 			
 

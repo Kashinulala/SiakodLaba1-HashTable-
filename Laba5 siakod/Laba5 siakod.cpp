@@ -4,8 +4,8 @@
 
 
 int main() {
-	const int N = 20;
-	HashTable ht(10, 2);
+	const int N = 10;
+	HashTable ht(10, 0.75);
 	Date d1(12, 12, 98);
 	Date d2(15, 06, 93);
 
@@ -14,13 +14,13 @@ int main() {
 	ht.AddRecord(emp1);
 	ht.AddRecord(emp2);
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 7; i++) {
 		emp1.surname += "a";
 		emp1.initials += "b";
-		ht.AddRecord(emp1);
+		if (ht.AddRecord(emp1) == 2) cout << "11" << endl;
 		emp2.surname += "a";
 		emp2.initials += "b";
-		ht.AddRecord(emp2);
+		if (ht.AddRecord(emp2) == 2) cout << "11" << endl;
 	}
 
 	cout << ht;
