@@ -17,5 +17,5 @@ ostream& operator << (ostream& os, const Date& d) {
 
 ostream& operator << (ostream& os, const Employee& e) {
     return os << e.surname << ' ' << e.initials << ' ' << e.dob << ' '
-        << e.prof << ' ' << e.period;
+        << e.prof;
 }

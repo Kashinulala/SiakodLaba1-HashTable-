@@ -17,7 +17,12 @@ class HashTable{
 		HashTable(unsigned _N, float _k) {
 			table = new Employee[_N];
 			N = _N;
-			k = _k;
+			if (_k >= 0.8) {
+				k = 0.8;
+			}
+			else {
+				k = _k;
+			}
 			min_N = _N;
 			cur_N = 0;
 			status = new int[_N];
@@ -37,7 +42,10 @@ class HashTable{
 
 		friend ostream& operator << (ostream& os, const HashTable& ht) {
 			for (int i = 0; i < ht.N; i++) {
-				os << ht.table[i] << " | " << ht.status[i] << endl;
+				if (ht.status[i] == 1) {
+					os << "[" << i << "] " << ht.table[i] << " | status: " << ht.status[i] << endl;
+				}
+				else os << "[" << i << "] " << " status: " << ht.status[i] << endl;
 			}
 			return os << endl;
 		}
@@ -68,7 +76,6 @@ class HashTable{
 				while (status[adr] != 0) {
 					if ((table[adr] == rec) && (status[adr] == 1)) {
 						return true;
-						break;
 					}
 					else 
 						adr = HashFunc2(adr);
@@ -81,37 +88,26 @@ class HashTable{
 
 		int AddRecord(Employee rec) {
 
-			if(cur_N >= (N * k)) Resize();
+			if(cur_N > (N * k)) Resize(1);
+			
 			bool add_fl = false;
 			int add_adr;
-
-			int adr = HashFunc1(rec);
-			if (status[adr] == 0) {
-				table[adr] = rec;
-				status[adr] = 1;
-				cur_N++;
-				return 0;
-			}
-			if ((status[adr] == 1) && (rec == table[adr])) {
-				return 1;
-			}
-			if (status[adr] == 2) {
-				add_fl = true;
-				add_adr = adr;
-			}
+			int adr;
+			adr = HashFunc1(rec);
 
 			for (int i = 0; i < N; i++) {
-				adr = HashFunc2(adr);
 				if ((status[adr] == 1) && (table[adr] == rec)) {
-					table[add_adr] = rec;
-					status[add_adr] = 1;
-					status[adr] = 2;
-					cur_N++;
-					return 0;
+					return 1;
 				}
 				if (status[adr] == 0) {
-					table[adr] = rec;
-					status[adr] = 1;
+					if (add_fl == true) {
+						table[add_adr] = rec;
+						status[add_adr] = 1;
+					}
+					else {
+						table[adr] = rec;
+						status[adr] = 1;
+					}
 					cur_N++;
 					return 0;
 				}
@@ -119,22 +115,21 @@ class HashTable{
 					add_fl = true;
 					add_adr = adr;
 				}
+				adr = HashFunc2(adr);
 			}
 			if (add_fl == true) {
-				table[adr] = rec;
-				status[adr] = 1;
+				table[add_adr] = rec;
+				status[add_adr] = 1;
 				cur_N++;
 				return 0;
 			}
-			else return 2;
-
-			//дописать случай когда места нет (return 2 или расширение таблицы)
 		}
 
 
 		int DelRecord(Employee rec) {
 
-			if (cur_N <= (N * (1 - k))) Resize();
+			if (cur_N < (N * (1 - k))) Resize(0);
+
 			int adr = HashFunc1(rec);
 			if ((rec == table[adr]) && (status[adr] == 1)) {
 				status[adr] = 2;
@@ -161,52 +156,47 @@ class HashTable{
 			}
 		}
 
-		int Resize() {
+		//direction - отвечает за расширение/сужение таблицы;
+		//1 - расширение, 0 - сужение;
+		int Resize(int direction) {
 
-			int N_2 = 0;
+			int prev_N = N;
 
-			if (cur_N >= (N * k)) {
-				N_2 = N + 10;
+			if (direction == 1) {
+				N += 10;
 			}
-			else if (cur_N <= (N * (1 - k))) {
-				N_2 = N - 10;
+			else if (N - 10 >= min_N) {
+				N -= 10;
+			}
+			else {
+				return -1;
 			}
 
-			if (N_2 >= min_N) {
+			Employee* prev_table; //указатель на таблицу до расширени€
+			int* prev_status;
 
-				Employee* emp_arr{new Employee[cur_N]};
-				int q = cur_N; //кол-во записей в текущей таблице
-				int j = 0;
+			Employee* emp_arr{ new Employee[N] };
+			int* stat_arr{ new int[N] };
 
-				for (int i = 0; i < N; i++) {
-					if (status[i] == 1) {
-						emp_arr[j] = table[i];
-						j++;
-					}
-				}
-
-				N = N_2;
-				delete[] table;
-				table = new Employee[N];
-				cur_N = 0;
-				delete[] status;
-				status = new int[N];
-				for (int i = 0; i < N; i++) {
-					status[i] = 0;
-				}
-
-				for (int i = 0; i < q; i++) {
-					AddRecord(emp_arr[i]);
-				}
-
-				delete[] emp_arr;
-
-				return 1;
-
+			for (int i = 0; i < N; i++) {
+				stat_arr[i] = 0;
 			}
-			else return 0;
 
-		}
-			
+			prev_status = status;
+			prev_table = table;
+			table = emp_arr;
+			status = stat_arr;
+			cur_N = 0;
 
+			for (int i = 0; i < prev_N; i++) {
+				if (prev_status[i] == 1) {
+					AddRecord(prev_table[i]);
+				}
+			}
+
+			delete[] prev_status;
+			delete[] prev_table;
+
+			return 0;
+		}	
 };
